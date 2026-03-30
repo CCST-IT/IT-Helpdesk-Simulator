@@ -6,4 +6,258 @@
 <style>
   body {
     margin: 0;
-    font-family: "Segoe
+    font-family: "Segoe UI", sans-serif;
+    background: linear-gradient(135deg,
+      #ff0000, #ff7f00, #ffff00, #00ff00,
+      #0000ff, #4b0082, #8f00ff);
+    background-size: 400% 400%;
+    animation: rainbow 18s ease infinite;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  @keyframes rainbow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .inbox {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    backdrop-filter: blur(10px);
+  }
+
+  /* LEFT PANEL */
+  .sidebar {
+    width: 320px;
+    background: rgba(0, 0, 0, 0.75);
+    border-right: 2px solid #0ff;
+    box-shadow: 0 0 20px #0ff;
+    overflow-y: auto;
+  }
+
+  .sidebar h2 {
+    color: #0ff;
+    padding: 16px;
+    margin: 0;
+    font-size: 1.2rem;
+    border-bottom: 1px solid #0ff;
+    text-shadow: 0 0 8px #0ff;
+  }
+
+  .email-item {
+    padding: 14px;
+    border-bottom: 1px solid #222;
+    cursor: pointer;
+    color: #eee;
+    transition: background 0.2s;
+  }
+
+  .email-item:hover {
+    background: rgba(0, 255, 255, 0.1);
+  }
+
+  .email-item .subject {
+    font-weight: bold;
+    color: #0ff;
+    text-shadow: 0 0 6px #0ff;
+  }
+
+  .email-item .sender {
+    font-size: 0.85rem;
+    opacity: 0.8;
+  }
+
+  .email-item .domain-tag {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    border: 1px solid #0ff;
+    color: #0ff;
+    text-shadow: 0 0 4px #0ff;
+  }
+
+  /* RIGHT PANEL */
+  .content {
+    flex: 1;
+    padding: 24px;
+    color: #fff;
+    overflow-y: auto;
+  }
+
+  .email-header {
+    margin-bottom: 12px;
+  }
+
+  .email-header h3 {
+    margin: 0;
+    font-size: 1.4rem;
+    color: #0ff;
+    text-shadow: 0 0 8px #0ff;
+  }
+
+  .email-header .from {
+    opacity: 0.8;
+    margin-top: 4px;
+  }
+
+  .steps {
+    margin-top: 20px;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.55);
+    border: 1px solid #0ff;
+    border-radius: 8px;
+    box-shadow: 0 0 12px #0ff;
+  }
+
+  .steps h4 {
+    margin-top: 0;
+    color: #0ff;
+    text-shadow: 0 0 6px #0ff;
+  }
+
+  .steps ol {
+    padding-left: 20px;
+  }
+
+  .btn-row {
+    margin-top: 20px;
+    display: flex;
+    gap: 12px;
+  }
+
+  .btn {
+    padding: 10px 16px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    border-radius: 6px;
+    color: #000;
+    background: #0ff;
+    box-shadow: 0 0 10px #0ff;
+    transition: transform 0.1s;
+  }
+
+  .btn:hover {
+    transform: scale(1.05);
+  }
+
+  .btn.escalate {
+    background: #ff0066;
+    box-shadow: 0 0 10px #ff0066;
+    color: #fff;
+  }
+</style>
+</head>
+
+<body>
+<div class="inbox">
+  <div class="sidebar">
+    <h2>📬 Helpdesk Inbox</h2>
+    <div id="emailList"></div>
+  </div>
+
+  <div class="content">
+    <div id="emailContent">
+      <h3>Select a ticket from the inbox</h3>
+    </div>
+  </div>
+</div>
+
+<script>
+const tickets = [
+  {
+    id: "D1-001",
+    domain: 1,
+    sender: "alex.johnson@company.com",
+    subject: "VPN disconnects every 5 minutes",
+    body: "Hey IT, my VPN keeps dropping while I'm trying to upload files.",
+    steps: [
+      "Verify the user’s internet connection stability.",
+      "Check VPN logs for timeout or heartbeat failures.",
+      "Confirm the user is not switching networks (WiFi → hotspot).",
+      "Reset the VPN adapter and re-authenticate.",
+      "Escalate to network team if firewall idle timeout is suspected."
+    ]
+  },
+  {
+    id: "D2-004",
+    domain: 2,
+    sender: "maria.lee@company.com",
+    subject: "Strange pop-up asking for my password",
+    body: "I clicked a link in an email and now a window keeps asking for my password.",
+    steps: [
+      "Instruct the user NOT to enter any credentials.",
+      "Disconnect the device from the network.",
+      "Collect details about the suspicious email.",
+      "Run endpoint malware scan.",
+      "Escalate to incident response for phishing investigation."
+    ]
+  },
+  {
+    id: "D4-009",
+    domain: 4,
+    sender: "server-monitor@company.com",
+    subject: "Unusual outbound traffic detected",
+    body: "Automated alert: Workstation 10.22.14.88 is sending traffic to an unknown IP.",
+    steps: [
+      "Isolate the workstation from the network.",
+      "Check system logs for unauthorized processes.",
+      "Scan for malware or remote access tools.",
+      "Document findings and escalate to IR team.",
+      "Do NOT wipe the machine until forensics approves."
+    ]
+  }
+];
+
+function loadInbox() {
+  const list = document.getElementById("emailList");
+  list.innerHTML = "";
+
+  tickets.forEach((t, index) => {
+    const item = document.createElement("div");
+    item.className = "email-item";
+    item.innerHTML = `
+      <div class="subject">${t.subject}</div>
+      <div class="sender">${t.sender}</div>
+      <div class="domain-tag">Domain ${t.domain}</div>
+    `;
+    item.onclick = () => openEmail(index);
+    list.appendChild(item);
+  });
+}
+
+function openEmail(i) {
+  const t = tickets[i];
+  const content = document.getElementById("emailContent");
+
+  content.innerHTML = `
+    <div class="email-header">
+      <h3>${t.subject}</h3>
+      <div class="from">From: ${t.sender}</div>
+      <p>${t.body}</p>
+    </div>
+
+    <div class="steps">
+      <h4>How to Fix</h4>
+      <ol>
+        ${t.steps.map(step => `<li>${step}</li>`).join("")}
+      </ol>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn">Mark as Resolved</button>
+      <button class="btn escalate">Escalate to Tier 2</button>
+    </div>
+  `;
+}
+
+loadInbox();
+</script>
+</body>
+</html>
