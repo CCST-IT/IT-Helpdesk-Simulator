@@ -2,18 +2,22 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Cyberpunk Helpdesk Inbox</title>
+<title>Cyberpunk Security+ Helpdesk Simulator</title>
 <style>
+  * {
+    box-sizing: border-box;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+
   body {
     margin: 0;
-    font-family: "Segoe UI", sans-serif;
     background: linear-gradient(135deg,
       #ff0000, #ff7f00, #ffff00, #00ff00,
       #0000ff, #4b0082, #8f00ff);
     background-size: 400% 400%;
     animation: rainbow 18s ease infinite;
-    display: flex;
     height: 100vh;
+    display: flex;
     overflow: hidden;
   }
 
@@ -23,75 +27,89 @@
     100% { background-position: 0% 50%; }
   }
 
-  .inbox {
-    display: flex;
+  .app {
     width: 100%;
     height: 100%;
+    display: flex;
     backdrop-filter: blur(10px);
+    color: #fff;
   }
 
-  /* LEFT PANEL */
   .sidebar {
     width: 320px;
-    background: rgba(0, 0, 0, 0.75);
+    background: rgba(0, 0, 0, 0.8);
     border-right: 2px solid #0ff;
     box-shadow: 0 0 20px #0ff;
     overflow-y: auto;
   }
 
   .sidebar h2 {
-    color: #0ff;
-    padding: 16px;
     margin: 0;
+    padding: 16px;
     font-size: 1.2rem;
+    color: #0ff;
     border-bottom: 1px solid #0ff;
     text-shadow: 0 0 8px #0ff;
   }
 
+  .sidebar .stats {
+    padding: 10px 16px;
+    font-size: 0.8rem;
+    border-bottom: 1px solid #222;
+  }
+
+  .sidebar .stats div {
+    margin-bottom: 4px;
+  }
+
   .email-item {
-    padding: 14px;
+    padding: 12px 16px;
     border-bottom: 1px solid #222;
     cursor: pointer;
-    color: #eee;
-    transition: background 0.2s;
+    transition: background 0.15s;
   }
 
   .email-item:hover {
-    background: rgba(0, 255, 255, 0.1);
+    background: rgba(0, 255, 255, 0.12);
   }
 
   .email-item .subject {
-    font-weight: bold;
+    font-weight: 600;
     color: #0ff;
     text-shadow: 0 0 6px #0ff;
+    margin-bottom: 2px;
   }
 
   .email-item .sender {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     opacity: 0.8;
   }
 
-  .email-item .domain-tag {
-    display: inline-block;
-    margin-top: 6px;
-    padding: 2px 6px;
-    border-radius: 6px;
+  .email-item .meta-row {
+    margin-top: 4px;
+    display: flex;
+    gap: 6px;
     font-size: 0.7rem;
+  }
+
+  .pill {
+    padding: 2px 6px;
+    border-radius: 999px;
     border: 1px solid #0ff;
     color: #0ff;
     text-shadow: 0 0 4px #0ff;
   }
 
-  /* RIGHT PANEL */
+  .pill.easy { border-color: #00ff99; color: #00ff99; }
+  .pill.medium { border-color: #ffd166; color: #ffd166; }
+  .pill.hard { border-color: #00bfff; color: #00bfff; }
+  .pill.nightmare { border-color: #ff0066; color: #ff0066; }
+
   .content {
     flex: 1;
     padding: 24px;
-    color: #fff;
     overflow-y: auto;
-  }
-
-  .email-header {
-    margin-bottom: 12px;
+    background: rgba(0, 0, 0, 0.7);
   }
 
   .email-header h3 {
@@ -102,8 +120,25 @@
   }
 
   .email-header .from {
-    opacity: 0.8;
     margin-top: 4px;
+    font-size: 0.9rem;
+    opacity: 0.8;
+  }
+
+  .email-header .domain-line {
+    margin-top: 4px;
+    font-size: 0.8rem;
+    opacity: 0.8;
+  }
+
+  .email-body {
+    margin-top: 12px;
+    font-size: 0.95rem;
+  }
+
+  .mood-line {
+    margin-top: 12px;
+    font-size: 0.9rem;
   }
 
   .steps {
@@ -125,22 +160,33 @@
     padding-left: 20px;
   }
 
+  .steps li {
+    margin-bottom: 8px;
+    cursor: pointer;
+  }
+
+  .steps li:hover {
+    text-shadow: 0 0 6px #0ff;
+  }
+
   .btn-row {
     margin-top: 20px;
     display: flex;
-    gap: 12px;
+    flex-wrap: wrap;
+    gap: 10px;
   }
 
   .btn {
-    padding: 10px 16px;
+    padding: 8px 14px;
+    border-radius: 6px;
     border: none;
     cursor: pointer;
-    font-weight: bold;
-    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.9rem;
     color: #000;
     background: #0ff;
     box-shadow: 0 0 10px #0ff;
-    transition: transform 0.1s;
+    transition: transform 0.08s;
   }
 
   .btn:hover {
@@ -152,69 +198,528 @@
     box-shadow: 0 0 10px #ff0066;
     color: #fff;
   }
+
+  .btn.disabled {
+    opacity: 0.4;
+    cursor: default;
+    transform: none;
+  }
+
+  .title-bar {
+    margin-bottom: 12px;
+    font-size: 0.9rem;
+    opacity: 0.8;
+  }
 </style>
 </head>
-
 <body>
-<div class="inbox">
+<div class="app">
   <div class="sidebar">
-    <h2>📬 Helpdesk Inbox</h2>
+    <h2>📬 Cyberpunk Helpdesk</h2>
+    <div class="stats">
+      <div><strong>Score:</strong> <span id="statScore">0</span></div>
+      <div><strong>Resolved:</strong> <span id="statResolved">0</span></div>
+      <div><strong>Failed:</strong> <span id="statFailed">0</span></div>
+      <div><strong>HR Warnings:</strong> <span id="statHR">0</span></div>
+    </div>
     <div id="emailList"></div>
   </div>
 
   <div class="content">
+    <div class="title-bar">
+      Security+ IT Helpdesk Simulator • Inbox view • Click a ticket to begin
+    </div>
     <div id="emailContent">
-      <h3>Select a ticket from the inbox</h3>
+      <h3>Welcome, Analyst.</h3>
+      <p>Select a ticket from the inbox to start your shift.</p>
     </div>
   </div>
 </div>
 
 <script>
+// ===============================
+// TICKETS DATABASE (STARTER SET)
+// ===============================
+// You can copy this pattern to add more tickets.
+// Each ticket:
+// - id, domain, difficulty
+// - sender, subject, body
+// - steps: array of options
+// - correctSteps: array of indices in correct order
+
 const tickets = [
+  // ===== DOMAIN 1 – General Security Concepts =====
   {
     id: "D1-001",
     domain: 1,
+    difficulty: "easy",
     sender: "alex.johnson@company.com",
-    subject: "VPN disconnects every 5 minutes",
-    body: "Hey IT, my VPN keeps dropping while I'm trying to upload files.",
+    subject: "Why do I need a VPN at home?",
+    body: "Hey IT, I’m working from home and the VPN slows things down. Do I really need it if the website is HTTPS?",
     steps: [
-      "Verify the user’s internet connection stability.",
-      "Check VPN logs for timeout or heartbeat failures.",
-      "Confirm the user is not switching networks (WiFi → hotspot).",
-      "Reset the VPN adapter and re-authenticate.",
-      "Escalate to network team if firewall idle timeout is suspected."
-    ]
+      "Explain that HTTPS only protects browser traffic, not all traffic.",
+      "Explain that the VPN creates an encrypted tunnel for all corporate traffic.",
+      "Tell them to disable the VPN to improve speed.",
+      "Verify they’re using the official corporate VPN client.",
+      "Remind them to only use public Wi-Fi without VPN."
+    ],
+    correctSteps: [0, 1, 3]
+  },
+  {
+    id: "D1-002",
+    domain: 1,
+    difficulty: "medium",
+    sender: "sara.miles@company.com",
+    subject: "Why can’t I use my personal laptop?",
+    body: "My work laptop is heavy. Can I just use my personal laptop to access company systems?",
+    steps: [
+      "Explain corporate policy on managed devices.",
+      "Explain risks of unmanaged devices accessing sensitive data.",
+      "Offer to enroll their personal device in MDM after proper approval.",
+      "Suggest using virtual desktop or remote access from the managed device.",
+      "Tell them to ignore policy if they’re careful."
+    ],
+    correctSteps: [0, 1, 3]
+  },
+  {
+    id: "D1-003",
+    domain: 1,
+    difficulty: "hard",
+    sender: "ceo.office@company.com",
+    subject: "Is security slowing us down?",
+    body: "Leadership wants to know why security controls are necessary if they slow productivity.",
+    steps: [
+      "Explain risk management vs. productivity trade-offs.",
+      "Provide examples of breaches avoided by controls.",
+      "Suggest removing all controls to speed work.",
+      "Offer to review controls for optimization, not removal.",
+      "Align controls with regulatory and contractual obligations."
+    ],
+    correctSteps: [0, 1, 4, 3]
+  },
+  {
+    id: "D1-004",
+    domain: 1,
+    difficulty: "nightmare",
+    sender: "board@company.com",
+    subject: "Why can’t we have perfect security?",
+    body: "The board is asking why we still have incidents if we invest so much in security.",
+    steps: [
+      "Explain that security is about risk reduction, not elimination.",
+      "Describe evolving threat landscape and attacker sophistication.",
+      "Show metrics on reduced impact and faster detection.",
+      "Promise zero incidents going forward.",
+      "Propose a risk-based roadmap instead of absolute guarantees."
+    ],
+    correctSteps: [0, 1, 2, 5].filter(i => i < 5) // 0,1,2,4
+  },
+  {
+    id: "D1-005",
+    domain: 1,
+    difficulty: "medium",
+    sender: "mark.lee@company.com",
+    subject: "Is public Wi-Fi safe?",
+    body: "I’m at a coffee shop. Can I log into our systems on public Wi-Fi?",
+    steps: [
+      "Explain risks of untrusted networks (eavesdropping, rogue APs).",
+      "Require VPN for any corporate access on public Wi-Fi.",
+      "Suggest using a personal hotspot as a safer alternative.",
+      "Tell them to disable VPN to improve speed.",
+      "Advise accessing sensitive systems only from trusted networks."
+    ],
+    correctSteps: [0, 1, 2, 4]
+  },
+
+  // ===== DOMAIN 2 – Threats, Vulnerabilities & Mitigations =====
+  {
+    id: "D2-001",
+    domain: 2,
+    difficulty: "easy",
+    sender: "user1@company.com",
+    subject: "Weird email asking for gift cards",
+    body: "I got an email from 'the CEO' asking me to buy gift cards urgently. Is this real?",
+    steps: [
+      "Instruct user not to respond or buy anything.",
+      "Ask user to forward the email to the phishing mailbox.",
+      "Check sender address and email headers.",
+      "Tell user to comply quickly because it’s the CEO.",
+      "Block sender and similar domains if confirmed phishing."
+    ],
+    correctSteps: [0, 1, 2, 4]
+  },
+  {
+    id: "D2-002",
+    domain: 2,
+    difficulty: "medium",
+    sender: "webadmin@company.com",
+    subject: "User can see other data by changing URL",
+    body: "A user says they can see other users’ data by changing numbers in the URL.",
+    steps: [
+      "Reproduce the issue in a test account.",
+      "Identify insecure direct object reference (IDOR) behavior.",
+      "Disable the affected feature if necessary.",
+      "Escalate to dev team to implement proper access checks.",
+      "Tell user to stop changing URLs and ignore it."
+    ],
+    correctSteps: [0, 1, 3]
+  },
+  {
+    id: "D2-003",
+    domain: 2,
+    difficulty: "hard",
+    sender: "siem@company.com",
+    subject: "Unusual outbound traffic to C2 IP",
+    body: "IDS flagged outbound traffic to an IP associated with command-and-control.",
+    steps: [
+      "Identify affected host(s) from logs.",
+      "Isolate host(s) from the network.",
+      "Run forensic-friendly malware scan.",
+      "Preserve logs and evidence.",
+      "Escalate to incident response team."
+    ],
+    correctSteps: [0, 1, 2, 3, 4]
   },
   {
     id: "D2-004",
     domain: 2,
-    sender: "maria.lee@company.com",
-    subject: "Strange pop-up asking for my password",
-    body: "I clicked a link in an email and now a window keeps asking for my password.",
+    difficulty: "nightmare",
+    sender: "user2@company.com",
+    subject: "My files are all encrypted and there’s a ransom note",
+    body: "All my files have weird extensions and there’s a note asking for Bitcoin.",
     steps: [
-      "Instruct the user NOT to enter any credentials.",
-      "Disconnect the device from the network.",
-      "Collect details about the suspicious email.",
-      "Run endpoint malware scan.",
-      "Escalate to incident response for phishing investigation."
-    ]
+      "Instruct user not to pay the ransom.",
+      "Disconnect the machine from the network immediately.",
+      "Preserve the ransom note and sample encrypted files.",
+      "Notify incident response and management.",
+      "Attempt to delete all encrypted files immediately."
+    ],
+    correctSteps: [0, 1, 2, 3]
   },
   {
-    id: "D4-009",
+    id: "D2-005",
+    domain: 2,
+    difficulty: "medium",
+    sender: "devops@company.com",
+    subject: "Secrets found in code repo",
+    body: "Automated scan found API keys committed to a public repo.",
+    steps: [
+      "Revoke and rotate exposed keys immediately.",
+      "Remove secrets from the repository history if possible.",
+      "Implement secret scanning in CI/CD.",
+      "Notify affected service owners.",
+      "Ignore it if keys are old."
+    ],
+    correctSteps: [0, 1, 2, 3]
+  },
+
+  // ===== DOMAIN 3 – Security Architecture =====
+  {
+    id: "D3-001",
+    domain: 3,
+    difficulty: "easy",
+    sender: "infra@company.com",
+    subject: "Why do we need a DMZ?",
+    body: "We’re setting up a new public web app. Why can’t we just put it on the internal network?",
+    steps: [
+      "Explain that a DMZ isolates public-facing systems from internal resources.",
+      "Describe how segmentation reduces blast radius.",
+      "Suggest placing all servers on the same flat network.",
+      "Recommend firewall rules between DMZ and internal network.",
+      "Disable all firewalls for easier troubleshooting."
+    ],
+    correctSteps: [0, 1, 3]
+  },
+  {
+    id: "D3-002",
+    domain: 3,
+    difficulty: "medium",
+    sender: "cloud.arch@company.com",
+    subject: "Minimizing blast radius in microservices",
+    body: "We’re designing microservices. How do we limit impact if one service is compromised?",
+    steps: [
+      "Apply network segmentation between services.",
+      "Use least-privilege IAM roles for each service.",
+      "Use a single shared admin role for all services.",
+      "Limit database access per service.",
+      "Disable logging to reduce overhead."
+    ],
+    correctSteps: [0, 1, 3]
+  },
+  {
+    id: "D3-003",
+    domain: 3,
+    difficulty: "hard",
+    sender: "netops@company.com",
+    subject: "Flat network causing security issues",
+    body: "We keep seeing lateral movement in incidents. Our network is mostly flat.",
+    steps: [
+      "Identify critical segments (servers, workstations, OT, etc.).",
+      "Design VLANs and firewall rules between segments.",
+      "Implement NAC to control device access.",
+      "Keep everything flat for simplicity.",
+      "Roll out segmentation in phases to reduce disruption."
+    ],
+    correctSteps: [0, 1, 2, 4]
+  },
+  {
+    id: "D3-004",
+    domain: 3,
+    difficulty: "nightmare",
+    sender: "datacenter@company.com",
+    subject: "Shadow systems discovered in rack",
+    body: "We found several untracked servers plugged into the core switch with unknown purpose.",
+    steps: [
+      "Document and label the unknown systems.",
+      "Isolate them from the production network.",
+      "Perform inventory and ownership investigation.",
+      "Wipe them immediately without investigation.",
+      "Escalate to security and management for shadow IT handling."
+    ],
+    correctSteps: [0, 1, 2, 4]
+  },
+  {
+    id: "D3-005",
+    domain: 3,
+    difficulty: "medium",
+    sender: "app.team@company.com",
+    subject: "Why separate dev and prod?",
+    body: "Developers want direct access to production systems for faster fixes.",
+    steps: [
+      "Explain risk of accidental changes in production.",
+      "Explain need for change control and approvals.",
+      "Suggest using staging environments for testing.",
+      "Grant full production access to all developers.",
+      "Propose controlled break-glass access for emergencies."
+    ],
+    correctSteps: [0, 1, 2, 4]
+  },
+
+  // ===== DOMAIN 4 – Security Operations =====
+  {
+    id: "D4-001",
     domain: 4,
-    sender: "server-monitor@company.com",
-    subject: "Unusual outbound traffic detected",
-    body: "Automated alert: Workstation 10.22.14.88 is sending traffic to an unknown IP.",
+    difficulty: "easy",
+    sender: "user3@company.com",
+    subject: "Account locked after failed logins",
+    body: "I tried my password a few times and now I’m locked out.",
+    steps: [
+      "Explain account lockout policy to the user.",
+      "Verify user identity per procedure.",
+      "Unlock the account or reset password as appropriate.",
+      "Disable lockout policy to avoid future issues.",
+      "Remind user about MFA and password hygiene."
+    ],
+    correctSteps: [0, 1, 2, 4]
+  },
+  {
+    id: "D4-002",
+    domain: 4,
+    difficulty: "medium",
+    sender: "monitor@company.com",
+    subject: "Unusual outbound traffic at 3 AM",
+    body: "Automated alert: workstation sending large amounts of data to unknown IP at 3 AM.",
     steps: [
       "Isolate the workstation from the network.",
-      "Check system logs for unauthorized processes.",
-      "Scan for malware or remote access tools.",
-      "Document findings and escalate to IR team.",
-      "Do NOT wipe the machine until forensics approves."
-    ]
+      "Check system and security logs for suspicious activity.",
+      "Run malware and EDR scans.",
+      "Document findings and escalate to incident response.",
+      "Ignore it because it’s outside business hours."
+    ],
+    correctSteps: [0, 1, 2, 3]
+  },
+  {
+    id: "D4-003",
+    domain: 4,
+    difficulty: "hard",
+    sender: "soc@company.com",
+    subject: "Multiple alerts across different hosts",
+    body: "We’re seeing correlated alerts across several hosts and network segments.",
+    steps: [
+      "Triage alerts to confirm a common campaign.",
+      "Group affected assets and prioritize by criticality.",
+      "Coordinate with IR to define containment strategy.",
+      "Silence all alerts to reduce noise.",
+      "Preserve evidence for later forensic analysis."
+    ],
+    correctSteps: [0, 1, 2, 4]
+  },
+  {
+    id: "D4-004",
+    domain: 4,
+    difficulty: "nightmare",
+    sender: "ops@company.com",
+    subject: "Production outage after emergency change",
+    body: "A rushed change caused an outage and potential security misconfigurations.",
+    steps: [
+      "Roll back the change if possible.",
+      "Engage change management and incident response.",
+      "Review logs and configs for security impact.",
+      "Document the incident and lessons learned.",
+      "Ignore it and hope it stabilizes."
+    ],
+    correctSteps: [0, 1, 2, 3]
+  },
+  {
+    id: "D4-005",
+    domain: 4,
+    difficulty: "medium",
+    sender: "user4@company.com",
+    subject: "Strange login notification at 3 AM",
+    body: "I got a login alert at 3 AM but I was asleep.",
+    steps: [
+      "Confirm user did not log in.",
+      "Force password reset and revoke active sessions.",
+      "Check login IP and device details.",
+      "Enable or verify MFA on the account.",
+      "Tell them to ignore it."
+    ],
+    correctSteps: [0, 1, 2, 3]
+  },
+
+  // ===== DOMAIN 5 – Security Program Management & Oversight =====
+  {
+    id: "D5-001",
+    domain: 5,
+    difficulty: "easy",
+    sender: "training@company.com",
+    subject: "Why do we need security awareness training?",
+    body: "Some staff say security training is a waste of time. How do we justify it?",
+    steps: [
+      "Explain that humans are a primary attack vector.",
+      "Share examples of phishing and social engineering incidents.",
+      "Align training with compliance and policy requirements.",
+      "Recommend skipping training for senior staff.",
+      "Encourage shorter, more frequent training modules."
+    ],
+    correctSteps: [0, 1, 2, 4]
+  },
+  {
+    id: "D5-002",
+    domain: 5,
+    difficulty: "medium",
+    sender: "governance@company.com",
+    subject: "Mapping controls to frameworks",
+    body: "We’re mapping our controls to a regulatory framework and need clarity on ownership.",
+    steps: [
+      "Create a control matrix with owners (e.g., RACI).",
+      "Align controls with framework requirements.",
+      "Document gaps and remediation plans.",
+      "Leave ownership undefined to stay flexible.",
+      "Review with stakeholders for sign-off."
+    ],
+    correctSteps: [0, 1, 2, 4]
+  },
+  {
+    id: "D5-003",
+    domain: 5,
+    difficulty: "hard",
+    sender: "audit@company.com",
+    subject: "Missing evidence for past incidents",
+    body: "Auditors are asking for evidence of how we handled past incidents.",
+    steps: [
+      "Gather incident reports and timelines.",
+      "Provide logs, tickets, and communication records.",
+      "Explain incident response process and improvements.",
+      "Admit we never documented anything.",
+      "Update procedures to ensure better evidence retention."
+    ],
+    correctSteps: [0, 1, 2, 5].filter(i => i < 5) // 0,1,2,4
+  },
+  {
+    id: "D5-004",
+    domain: 5,
+    difficulty: "nightmare",
+    sender: "legal@company.com",
+    subject: "Regulator inquiry about recent breach",
+    body: "A regulator is asking detailed questions about a recent security incident.",
+    steps: [
+      "Coordinate response with legal, compliance, and security.",
+      "Provide accurate, documented facts about the incident.",
+      "Explain remediation steps and future prevention.",
+      "Guess details to speed up the response.",
+      "Ensure communication is consistent and approved."
+    ],
+    correctSteps: [0, 1, 2, 4]
+  },
+  {
+    id: "D5-005",
+    domain: 5,
+    difficulty: "medium",
+    sender: "ciso@company.com",
+    subject: "Why do we need a risk register?",
+    body: "Leadership wants to know why we maintain a risk register.",
+    steps: [
+      "Explain that it tracks identified risks and owners.",
+      "Show how it supports prioritization and decision-making.",
+      "Use it to align budget with highest risks.",
+      "Keep risks informal and undocumented.",
+      "Review and update it regularly."
+    ],
+    correctSteps: [0, 1, 2, 4]
   }
 ];
 
+// ===============================
+// GAME STATE
+// ===============================
+let activeTicket = null;
+let currentStep = 0;
+let mood = 100;
+
+let powerups = {
+  rootAccess: 1,
+  logScanner: 1,
+  firewallOverride: 1,
+  tier2: 1
+};
+
+let score = 0;
+let hrWarnings = 0;
+let ticketsResolved = 0;
+let ticketsFailed = 0;
+
+// ===============================
+// UTILS
+// ===============================
+function updateStatsUI() {
+  document.getElementById("statScore").textContent = score;
+  document.getElementById("statResolved").textContent = ticketsResolved;
+  document.getElementById("statFailed").textContent = ticketsFailed;
+  document.getElementById("statHR").textContent = hrWarnings;
+}
+
+function addPoints(amount) {
+  score += amount;
+  updateStatsUI();
+  checkHRStatus();
+}
+
+function removePoints(amount) {
+  score -= amount;
+  if (score < 0) score = 0;
+  updateStatsUI();
+  checkHRStatus();
+}
+
+function checkHRStatus() {
+  if (ticketsFailed >= 10) firePlayer("Too many failed tickets.");
+  if (hrWarnings >= 5) firePlayer("Excessive HR warnings.");
+  if (score < 50 && ticketsResolved > 20) firePlayer("Performance score too low.");
+}
+
+function firePlayer(reason) {
+  document.getElementById("emailContent").innerHTML = `
+    <h2 style="color:#ff0033; text-shadow:0 0 10px #ff0033;">TERMINATION NOTICE</h2>
+    <p><strong>Reason:</strong> ${reason}</p>
+    <p>Your access to the Helpdesk System has been revoked.</p>
+    <p>Please return your badge to the nearest disposal chute.</p>
+    <p style="opacity:0.7;">HR Automated System v3.9</p>
+  `;
+}
+
+// ===============================
+// INBOX RENDERING
+// ===============================
 function loadInbox() {
   const list = document.getElementById("emailList");
   list.innerHTML = "";
@@ -225,39 +730,176 @@ function loadInbox() {
     item.innerHTML = `
       <div class="subject">${t.subject}</div>
       <div class="sender">${t.sender}</div>
-      <div class="domain-tag">Domain ${t.domain}</div>
+      <div class="meta-row">
+        <span class="pill">D${t.domain}</span>
+        <span class="pill ${t.difficulty}">${t.difficulty}</span>
+      </div>
     `;
     item.onclick = () => openEmail(index);
     list.appendChild(item);
   });
 }
 
+// ===============================
+// TICKET VIEW + GAMEPLAY
+// ===============================
 function openEmail(i) {
-  const t = tickets[i];
+  activeTicket = tickets[i];
+  currentStep = 0;
+  mood = 100;
+  renderTicket();
+}
+
+function renderTicket() {
+  if (!activeTicket) return;
+  const t = activeTicket;
   const content = document.getElementById("emailContent");
+
+  const moodColor =
+    mood > 70 ? "#00ff99" :
+    mood > 40 ? "#ffd166" :
+    "#ff0066";
 
   content.innerHTML = `
     <div class="email-header">
       <h3>${t.subject}</h3>
       <div class="from">From: ${t.sender}</div>
-      <p>${t.body}</p>
+      <div class="domain-line">Domain ${t.domain} • Difficulty: ${t.difficulty}</div>
     </div>
-
+    <div class="email-body">
+      ${t.body}
+    </div>
+    <div class="mood-line">
+      <strong>Client Mood:</strong>
+      <span style="color:${moodColor}; text-shadow:0 0 6px ${moodColor};">${mood}%</span>
+    </div>
     <div class="steps">
-      <h4>How to Fix</h4>
-      <ol>
-        ${t.steps.map(step => `<li>${step}</li>`).join("")}
+      <h4>Choose the next correct step</h4>
+      <ol id="stepList">
+        ${t.steps.map((step, index) => `
+          <li onclick="chooseStep(${index})">${step}</li>
+        `).join("")}
       </ol>
     </div>
-
     <div class="btn-row">
-      <button class="btn">Mark as Resolved</button>
-      <button class="btn escalate">Escalate to Tier 2</button>
+      <button class="btn ${powerups.rootAccess <= 0 ? "disabled" : ""}" onclick="usePowerup('rootAccess')">
+        Root Access (${powerups.rootAccess})
+      </button>
+      <button class="btn ${powerups.logScanner <= 0 ? "disabled" : ""}" onclick="usePowerup('logScanner')">
+        Log Scanner (${powerups.logScanner})
+      </button>
+      <button class="btn ${powerups.firewallOverride <= 0 ? "disabled" : ""}" onclick="usePowerup('firewallOverride')">
+        Firewall Override (${powerups.firewallOverride})
+      </button>
+      <button class="btn escalate ${powerups.tier2 <= 0 ? "disabled" : ""}" onclick="usePowerup('tier2')">
+        Tier 2 (${powerups.tier2})
+      </button>
     </div>
   `;
 }
 
+function chooseStep(index) {
+  if (!activeTicket) return;
+  const t = activeTicket;
+
+  const diffMult = {
+    easy: 1,
+    medium: 2,
+    hard: 3,
+    nightmare: 5
+  }[t.difficulty] || 1;
+
+  if (index === t.correctSteps[currentStep]) {
+    // Correct step
+    addPoints(10 * diffMult);
+    currentStep++;
+
+    if (currentStep >= t.correctSteps.length) {
+      ticketsResolved++;
+      addPoints(50 * diffMult);
+      updateStatsUI();
+
+      document.getElementById("emailContent").innerHTML = `
+        <h2 style="color:#00ff99; text-shadow:0 0 8px #00ff99;">Ticket Resolved ✔️</h2>
+        <p>You successfully fixed the issue.</p>
+        <p><strong>Score:</strong> ${score}</p>
+      `;
+      return;
+    }
+
+    renderTicket();
+  } else {
+    // Wrong step
+    hrWarnings++;
+    removePoints(15 * diffMult);
+    updateStatsUI();
+
+    if (powerups.firewallOverride > 0) {
+      powerups.firewallOverride--;
+    } else {
+      mood -= 25;
+    }
+
+    if (mood <= 0) {
+      ticketsFailed++;
+      removePoints(50 * diffMult);
+      updateStatsUI();
+
+      document.getElementById("emailContent").innerHTML = `
+        <h2 style="color:#ff0066; text-shadow:0 0 8px #ff0066;">Client Rage Quit ❌</h2>
+        <p>You lost reputation. HR is not impressed.</p>
+        <p><strong>Score:</strong> ${score}</p>
+      `;
+      checkHRStatus();
+      return;
+    }
+
+    renderTicket();
+  }
+}
+
+function usePowerup(type) {
+  if (!activeTicket) return;
+  if (powerups[type] <= 0) return;
+
+  powerups[type]--;
+
+  if (type === "rootAccess") {
+    const t = activeTicket;
+    const nextIndex = t.correctSteps[currentStep];
+    if (typeof nextIndex === "number") {
+      chooseStep(nextIndex);
+      return;
+    }
+  }
+
+  if (type === "logScanner") {
+    alert("Log Scanner: highlighting the correct step in your mind. (In a real build, you could visually hint it.)");
+  }
+
+  if (type === "firewallOverride") {
+    alert("Firewall Override: next wrong step will not reduce mood.");
+  }
+
+  if (type === "tier2") {
+    ticketsResolved++;
+    addPoints(30);
+    updateStatsUI();
+    document.getElementById("emailContent").innerHTML = `
+      <h2 style="color:#0ff; text-shadow:0 0 8px #0ff;">Tier 2 Resolved the Ticket ⚡</h2>
+      <p>Nice save. Try not to rely on them too often.</p>
+      <p><strong>Score:</strong> ${score}</p>
+    `;
+  }
+
+  renderTicket();
+}
+
+// ===============================
+// INIT
+// ===============================
 loadInbox();
+updateStatsUI();
 </script>
 </body>
 </html>
