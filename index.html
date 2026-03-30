@@ -36,8 +36,8 @@
   }
 
   .sidebar {
-    width: 320px;
-    background: rgba(0, 0, 0, 0.8);
+    width: 340px;
+    background: rgba(0, 0, 0, 0.85);
     border-right: 2px solid #0ff;
     box-shadow: 0 0 20px #0ff;
     overflow-y: auto;
@@ -60,6 +60,22 @@
 
   .sidebar .stats div {
     margin-bottom: 4px;
+  }
+
+  .os-bar {
+    padding: 8px 16px;
+    border-bottom: 1px solid #222;
+    font-size: 0.8rem;
+    background: rgba(0,0,0,0.5);
+  }
+
+  .os-bar select {
+    background: #000;
+    color: #0ff;
+    border: 1px solid #0ff;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 0.8rem;
   }
 
   .email-item {
@@ -139,6 +155,12 @@
   .mood-line {
     margin-top: 12px;
     font-size: 0.9rem;
+  }
+
+  .reaction-line {
+    margin-top: 6px;
+    font-size: 0.9rem;
+    opacity: 0.9;
   }
 
   .steps {
@@ -221,33 +243,47 @@
       <div><strong>Resolved:</strong> <span id="statResolved">0</span></div>
       <div><strong>Failed:</strong> <span id="statFailed">0</span></div>
       <div><strong>HR Warnings:</strong> <span id="statHR">0</span></div>
+      <div><strong>Inbox:</strong> <span id="statInbox">0</span></div>
+    </div>
+    <div class="os-bar">
+      <label>Select OS: </label>
+      <select id="osSelect" onchange="setOS(this.value)">
+        <option value="windows">Windows</option>
+        <option value="mac">macOS</option>
+        <option value="linux">Linux</option>
+        <option value="chromeos">ChromeOS</option>
+      </select>
     </div>
     <div id="emailList"></div>
   </div>
 
   <div class="content">
     <div class="title-bar">
-      Security+ IT Helpdesk Simulator • Inbox view • Click a ticket to begin
+      Security+ IT Helpdesk Simulator • Live Inbox • Tickets spawn over time
     </div>
     <div id="emailContent">
       <h3>Welcome, Analyst.</h3>
-      <p>Select a ticket from the inbox to start your shift.</p>
+      <p>Select a ticket from the inbox to start your shift. Tickets will keep coming in. Don’t let HR catch you slacking.</p>
     </div>
   </div>
 </div>
 
 <script>
 // ===============================
-// TICKETS DATABASE (STARTER SET)
+// OS SELECTION
 // ===============================
-// You can copy this pattern to add more tickets.
-// Each ticket:
-// - id, domain, difficulty
-// - sender, subject, body
-// - steps: array of options
-// - correctSteps: array of indices in correct order
+let selectedOS = "windows";
+function setOS(os) {
+  selectedOS = os;
+}
 
-const tickets = [
+// ===============================
+// TICKETS DATABASE (BASE POOL)
+// ===============================
+// Mix of simple steps (array) and OS-specific steps (object).
+// Engine will handle both.
+
+const ticketsBase = [
   // ===== DOMAIN 1 – General Security Concepts =====
   {
     id: "D1-001",
@@ -311,7 +347,7 @@ const tickets = [
       "Promise zero incidents going forward.",
       "Propose a risk-based roadmap instead of absolute guarantees."
     ],
-    correctSteps: [0, 1, 2, 5].filter(i => i < 5) // 0,1,2,4
+    correctSteps: [0, 1, 2, 4]
   },
   {
     id: "D1-005",
@@ -328,6 +364,86 @@ const tickets = [
       "Advise accessing sensitive systems only from trusted networks."
     ],
     correctSteps: [0, 1, 2, 4]
+  },
+
+  // OS-specific Domain 1 tickets
+  {
+    id: "D1-011",
+    domain: 1,
+    difficulty: "easy",
+    sender: "user@company.com",
+    subject: "How do I check if my firewall is on?",
+    body: "My coworker said my firewall might be off. How do I check?",
+    steps: {
+      windows: [
+        "Open Settings → Privacy & Security → Windows Security.",
+        "Click Firewall & Network Protection.",
+        "Ensure all profiles show 'Firewall On'.",
+        "Run 'Check for updates'.",
+        "Restart if firewall was disabled."
+      ],
+      mac: [
+        "Open System Settings → Network.",
+        "Click Firewall.",
+        "Ensure Firewall is enabled.",
+        "Enable Stealth Mode.",
+        "Restart if firewall was disabled."
+      ],
+      linux: [
+        "Run `sudo ufw status`.",
+        "If inactive, run `sudo ufw enable`.",
+        "Check allowed ports with `sudo ufw app list`.",
+        "Reload firewall rules.",
+        "Restart network services."
+      ],
+      chromeos: [
+        "ChromeOS firewall is always on.",
+        "Verify no suspicious extensions.",
+        "Check VPN settings.",
+        "Restart ChromeOS.",
+        "Update ChromeOS."
+      ]
+    },
+    correctSteps: [0, 1, 2]
+  },
+  {
+    id: "D1-012",
+    domain: 1,
+    difficulty: "medium",
+    sender: "remote@company.com",
+    subject: "Why does MFA trigger randomly?",
+    body: "Sometimes I get MFA prompts even when I didn’t log in.",
+    steps: {
+      windows: [
+        "Open Settings → Accounts → Access Work or School.",
+        "Check for duplicate work accounts.",
+        "Review sign-in logs in browser.",
+        "Reset MFA session.",
+        "Re-authenticate."
+      ],
+      mac: [
+        "Open System Settings → Internet Accounts.",
+        "Remove duplicate work accounts.",
+        "Review sign-in logs.",
+        "Reset MFA session.",
+        "Re-authenticate."
+      ],
+      linux: [
+        "Check browser saved sessions.",
+        "Clear cookies and tokens.",
+        "Review sign-in logs.",
+        "Reset MFA session.",
+        "Re-authenticate."
+      ],
+      chromeos: [
+        "Open Chrome → Settings → Sync.",
+        "Clear sign-in cookies.",
+        "Review sign-in logs.",
+        "Reset MFA session.",
+        "Re-authenticate."
+      ]
+    },
+    correctSteps: [0, 2, 3, 4]
   },
 
   // ===== DOMAIN 2 – Threats, Vulnerabilities & Mitigations =====
@@ -461,38 +577,6 @@ const tickets = [
     ],
     correctSteps: [0, 1, 2, 4]
   },
-  {
-    id: "D3-004",
-    domain: 3,
-    difficulty: "nightmare",
-    sender: "datacenter@company.com",
-    subject: "Shadow systems discovered in rack",
-    body: "We found several untracked servers plugged into the core switch with unknown purpose.",
-    steps: [
-      "Document and label the unknown systems.",
-      "Isolate them from the production network.",
-      "Perform inventory and ownership investigation.",
-      "Wipe them immediately without investigation.",
-      "Escalate to security and management for shadow IT handling."
-    ],
-    correctSteps: [0, 1, 2, 4]
-  },
-  {
-    id: "D3-005",
-    domain: 3,
-    difficulty: "medium",
-    sender: "app.team@company.com",
-    subject: "Why separate dev and prod?",
-    body: "Developers want direct access to production systems for faster fixes.",
-    steps: [
-      "Explain risk of accidental changes in production.",
-      "Explain need for change control and approvals.",
-      "Suggest using staging environments for testing.",
-      "Grant full production access to all developers.",
-      "Propose controlled break-glass access for emergencies."
-    ],
-    correctSteps: [0, 1, 2, 4]
-  },
 
   // ===== DOMAIN 4 – Security Operations =====
   {
@@ -543,40 +627,8 @@ const tickets = [
     ],
     correctSteps: [0, 1, 2, 4]
   },
-  {
-    id: "D4-004",
-    domain: 4,
-    difficulty: "nightmare",
-    sender: "ops@company.com",
-    subject: "Production outage after emergency change",
-    body: "A rushed change caused an outage and potential security misconfigurations.",
-    steps: [
-      "Roll back the change if possible.",
-      "Engage change management and incident response.",
-      "Review logs and configs for security impact.",
-      "Document the incident and lessons learned.",
-      "Ignore it and hope it stabilizes."
-    ],
-    correctSteps: [0, 1, 2, 3]
-  },
-  {
-    id: "D4-005",
-    domain: 4,
-    difficulty: "medium",
-    sender: "user4@company.com",
-    subject: "Strange login notification at 3 AM",
-    body: "I got a login alert at 3 AM but I was asleep.",
-    steps: [
-      "Confirm user did not log in.",
-      "Force password reset and revoke active sessions.",
-      "Check login IP and device details.",
-      "Enable or verify MFA on the account.",
-      "Tell them to ignore it."
-    ],
-    correctSteps: [0, 1, 2, 3]
-  },
 
-  // ===== DOMAIN 5 – Security Program Management & Oversight =====
+  // ===== DOMAIN 5 – Security Program Management =====
   {
     id: "D5-001",
     domain: 5,
@@ -623,38 +675,6 @@ const tickets = [
       "Admit we never documented anything.",
       "Update procedures to ensure better evidence retention."
     ],
-    correctSteps: [0, 1, 2, 5].filter(i => i < 5) // 0,1,2,4
-  },
-  {
-    id: "D5-004",
-    domain: 5,
-    difficulty: "nightmare",
-    sender: "legal@company.com",
-    subject: "Regulator inquiry about recent breach",
-    body: "A regulator is asking detailed questions about a recent security incident.",
-    steps: [
-      "Coordinate response with legal, compliance, and security.",
-      "Provide accurate, documented facts about the incident.",
-      "Explain remediation steps and future prevention.",
-      "Guess details to speed up the response.",
-      "Ensure communication is consistent and approved."
-    ],
-    correctSteps: [0, 1, 2, 4]
-  },
-  {
-    id: "D5-005",
-    domain: 5,
-    difficulty: "medium",
-    sender: "ciso@company.com",
-    subject: "Why do we need a risk register?",
-    body: "Leadership wants to know why we maintain a risk register.",
-    steps: [
-      "Explain that it tracks identified risks and owners.",
-      "Show how it supports prioritization and decision-making.",
-      "Use it to align budget with highest risks.",
-      "Keep risks informal and undocumented.",
-      "Review and update it regularly."
-    ],
     correctSteps: [0, 1, 2, 4]
   }
 ];
@@ -662,21 +682,29 @@ const tickets = [
 // ===============================
 // GAME STATE
 // ===============================
+let ticketPool = [...ticketsBase];
+let liveInbox = [];
+let maxInboxSize = 8;
+
 let activeTicket = null;
 let currentStep = 0;
 let mood = 100;
+let lastReaction = "";
 
 let powerups = {
   rootAccess: 1,
   logScanner: 1,
   firewallOverride: 1,
-  tier2: 1
+  tier2: 1,
+  timeFreeze: 1,
+  systemRestore: 1
 };
 
 let score = 0;
 let hrWarnings = 0;
 let ticketsResolved = 0;
 let ticketsFailed = 0;
+let timeFreezeActive = false;
 
 // ===============================
 // UTILS
@@ -686,6 +714,7 @@ function updateStatsUI() {
   document.getElementById("statResolved").textContent = ticketsResolved;
   document.getElementById("statFailed").textContent = ticketsFailed;
   document.getElementById("statHR").textContent = hrWarnings;
+  document.getElementById("statInbox").textContent = liveInbox.length;
 }
 
 function addPoints(amount) {
@@ -718,13 +747,74 @@ function firePlayer(reason) {
 }
 
 // ===============================
-// INBOX RENDERING
+// INBOX & SPAWN SYSTEM
 // ===============================
+function spawnTicket() {
+  if (ticketPool.length === 0) return;
+
+  if (liveInbox.length < maxInboxSize) {
+    const next = ticketPool.shift();
+    liveInbox.push(next);
+    loadInbox();
+  } else {
+    // Inbox overloaded → HR warning
+    hrWarnings++;
+    removePoints(10);
+    updateStatsUI();
+    checkHRStatus();
+  }
+}
+
+function spawnUrgentTicket() {
+  const urgent = {
+    id: "URG-" + Math.random().toString(36).substring(2, 8),
+    domain: Math.ceil(Math.random() * 5),
+    difficulty: "nightmare",
+    sender: "alerts@company.com",
+    subject: "🔥 URGENT: Critical system failure detected",
+    body: "Automated alert: A critical system is failing. Immediate action required.",
+    steps: {
+      windows: [
+        "Open Event Viewer.",
+        "Check critical logs under System and Application.",
+        "Restart the affected service.",
+        "Escalate to Incident Response.",
+        "Document the incident in the tracking system."
+      ],
+      mac: [
+        "Open Console.",
+        "Check system logs for critical errors.",
+        "Restart the affected service.",
+        "Escalate to Incident Response.",
+        "Document the incident."
+      ],
+      linux: [
+        "Check /var/log/syslog for critical errors.",
+        "Restart the affected service.",
+        "Check dmesg for hardware issues.",
+        "Escalate to Incident Response.",
+        "Document the incident."
+      ],
+      chromeos: [
+        "Check admin console device logs.",
+        "Restart the device.",
+        "Verify policies are applied.",
+        "Escalate to Incident Response.",
+        "Document the incident."
+      ]
+    },
+    correctSteps: [0, 1, 3, 4]
+  };
+
+  liveInbox.push(urgent);
+  loadInbox();
+}
+
 function loadInbox() {
   const list = document.getElementById("emailList");
   list.innerHTML = "";
 
-  tickets.forEach((t, index) => {
+  liveInbox.forEach((t) => {
     const item = document.createElement("div");
     item.className = "email-item";
     item.innerHTML = `
@@ -735,19 +825,32 @@ function loadInbox() {
         <span class="pill ${t.difficulty}">${t.difficulty}</span>
       </div>
     `;
-    item.onclick = () => openEmail(index);
+    item.onclick = () => openEmailById(t.id);
     list.appendChild(item);
   });
+
+  updateStatsUI();
+}
+
+function openEmailById(id) {
+  activeTicket = liveInbox.find(t => t.id === id);
+  currentStep = 0;
+  mood = 100;
+  lastReaction = "";
+  renderTicket();
 }
 
 // ===============================
 // TICKET VIEW + GAMEPLAY
 // ===============================
-function openEmail(i) {
-  activeTicket = tickets[i];
-  currentStep = 0;
-  mood = 100;
-  renderTicket();
+function getStepsForTicket(t) {
+  if (Array.isArray(t.steps)) {
+    return t.steps;
+  }
+  if (t.steps && typeof t.steps === "object") {
+    return t.steps[selectedOS] || t.steps.windows || [];
+  }
+  return [];
 }
 
 function renderTicket() {
@@ -759,6 +862,8 @@ function renderTicket() {
     mood > 70 ? "#00ff99" :
     mood > 40 ? "#ffd166" :
     "#ff0066";
+
+  const stepsArray = getStepsForTicket(t);
 
   content.innerHTML = `
     <div class="email-header">
@@ -773,10 +878,13 @@ function renderTicket() {
       <strong>Client Mood:</strong>
       <span style="color:${moodColor}; text-shadow:0 0 6px ${moodColor};">${mood}%</span>
     </div>
+    <div class="reaction-line">
+      ${lastReaction ? lastReaction : ""}
+    </div>
     <div class="steps">
       <h4>Choose the next correct step</h4>
       <ol id="stepList">
-        ${t.steps.map((step, index) => `
+        ${stepsArray.map((step, index) => `
           <li onclick="chooseStep(${index})">${step}</li>
         `).join("")}
       </ol>
@@ -790,6 +898,12 @@ function renderTicket() {
       </button>
       <button class="btn ${powerups.firewallOverride <= 0 ? "disabled" : ""}" onclick="usePowerup('firewallOverride')">
         Firewall Override (${powerups.firewallOverride})
+      </button>
+      <button class="btn ${powerups.timeFreeze <= 0 ? "disabled" : ""}" onclick="usePowerup('timeFreeze')">
+        Time Freeze (${powerups.timeFreeze})
+      </button>
+      <button class="btn ${powerups.systemRestore <= 0 ? "disabled" : ""}" onclick="usePowerup('systemRestore')">
+        System Restore (${powerups.systemRestore})
       </button>
       <button class="btn escalate ${powerups.tier2 <= 0 ? "disabled" : ""}" onclick="usePowerup('tier2')">
         Tier 2 (${powerups.tier2})
@@ -809,30 +923,51 @@ function chooseStep(index) {
     nightmare: 5
   }[t.difficulty] || 1;
 
+  const stepsArray = getStepsForTicket(t);
+
   if (index === t.correctSteps[currentStep]) {
     // Correct step
     addPoints(10 * diffMult);
     currentStep++;
+    lastReaction = `<span style="color:#00ff99; text-shadow:0 0 6px #00ff99;">"You saved my day!"</span>`;
 
     if (currentStep >= t.correctSteps.length) {
       ticketsResolved++;
       addPoints(50 * diffMult);
+
+      // Remove ticket from live inbox
+      liveInbox = liveInbox.filter(x => x.id !== t.id);
+      activeTicket = null;
       updateStatsUI();
 
       document.getElementById("emailContent").innerHTML = `
         <h2 style="color:#00ff99; text-shadow:0 0 8px #00ff99;">Ticket Resolved ✔️</h2>
-        <p>You successfully fixed the issue.</p>
+        <p>The client is thrilled. <strong>"You saved my day!"</strong></p>
         <p><strong>Score:</strong> ${score}</p>
       `;
+      loadInbox();
+
+      // Difficulty scaling: every 10 resolved, increase inbox size
+      if (ticketsResolved % 10 === 0 && maxInboxSize < 20) {
+        maxInboxSize++;
+      }
+
       return;
     }
 
     renderTicket();
   } else {
     // Wrong step
+    if (timeFreezeActive) {
+      timeFreezeActive = false;
+      lastReaction = `<span style="color:#ffd166; text-shadow:0 0 6px #ffd166;">Time is frozen. No penalty… this time.</span>`;
+      renderTicket();
+      return;
+    }
+
     hrWarnings++;
     removePoints(15 * diffMult);
-    updateStatsUI();
+    lastReaction = `<span style="color:#ff0066; text-shadow:0 0 6px #ff0066;">"You ruined me."</span>`;
 
     if (powerups.firewallOverride > 0) {
       powerups.firewallOverride--;
@@ -847,9 +982,14 @@ function chooseStep(index) {
 
       document.getElementById("emailContent").innerHTML = `
         <h2 style="color:#ff0066; text-shadow:0 0 8px #ff0066;">Client Rage Quit ❌</h2>
-        <p>You lost reputation. HR is not impressed.</p>
+        <p>The client storms off. <strong>"You ruined me."</strong></p>
         <p><strong>Score:</strong> ${score}</p>
       `;
+
+      // Remove ticket from live inbox
+      liveInbox = liveInbox.filter(x => x.id !== t.id);
+      activeTicket = null;
+      loadInbox();
       checkHRStatus();
       return;
     }
@@ -858,6 +998,9 @@ function chooseStep(index) {
   }
 }
 
+// ===============================
+// POWER-UPS
+// ===============================
 function usePowerup(type) {
   if (!activeTicket) return;
   if (powerups[type] <= 0) return;
@@ -874,22 +1017,36 @@ function usePowerup(type) {
   }
 
   if (type === "logScanner") {
-    alert("Log Scanner: highlighting the correct step in your mind. (In a real build, you could visually hint it.)");
+    alert("Log Scanner: In a full build, this could highlight the correct step or narrow down options.");
   }
 
   if (type === "firewallOverride") {
-    alert("Firewall Override: next wrong step will not reduce mood.");
+    alert("Firewall Override: Next wrong step will not reduce mood.");
+  }
+
+  if (type === "timeFreeze") {
+    alert("Time Freeze: Next mistake will not reduce mood or trigger HR.");
+    timeFreezeActive = true;
+  }
+
+  if (type === "systemRestore") {
+    mood = 100;
+    lastReaction = `<span style="color:#00ff99; text-shadow:0 0 6px #00ff99;">System Restore: Mood fully restored.</span>`;
   }
 
   if (type === "tier2") {
     ticketsResolved++;
     addPoints(30);
     updateStatsUI();
+    const t = activeTicket;
+    liveInbox = liveInbox.filter(x => x.id !== t.id);
+    activeTicket = null;
     document.getElementById("emailContent").innerHTML = `
       <h2 style="color:#0ff; text-shadow:0 0 8px #0ff;">Tier 2 Resolved the Ticket ⚡</h2>
-      <p>Nice save. Try not to rely on them too often.</p>
+      <p>Tier 2 swoops in and fixes everything. The client mutters, <strong>"You saved my day… but not you."</strong></p>
       <p><strong>Score:</strong> ${score}</p>
     `;
+    loadInbox();
   }
 
   renderTicket();
@@ -898,8 +1055,26 @@ function usePowerup(type) {
 // ===============================
 // INIT
 // ===============================
-loadInbox();
-updateStatsUI();
+function initGame() {
+  // Start with a few tickets
+  for (let i = 0; i < 5; i++) {
+    spawnTicket();
+  }
+
+  // Spawn new tickets over time
+  setInterval(() => {
+    spawnTicket();
+
+    // Chance for urgent nightmare ticket
+    if (Math.random() < 0.15) {
+      spawnUrgentTicket();
+    }
+  }, 8000);
+
+  updateStatsUI();
+}
+
+initGame();
 </script>
 </body>
 </html>
